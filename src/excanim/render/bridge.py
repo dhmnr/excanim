@@ -20,12 +20,18 @@ _page: Page | None = None
 
 
 def get_browser() -> Browser:
-    """Get or create a shared headless Chromium browser."""
+    """Get or create a shared headless Chromium browser. Auto-installs chromium if missing."""
     global _pw, _browser
     if _browser is not None:
         return _browser
     _pw = sync_playwright().start()
-    _browser = _pw.chromium.launch(headless=True)
+    try:
+        _browser = _pw.chromium.launch(headless=True)
+    except Exception:
+        import subprocess, sys
+        print("Chromium not found — installing...")
+        subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=True)
+        _browser = _pw.chromium.launch(headless=True)
     return _browser
 
 
