@@ -7,11 +7,11 @@ wheels/
 *.egg-info
 .venv
 
-# Node
+# Node (only needed for rebuilding bridge/bundle.js)
 bridge/node_modules/
 bridge/package-lock.json
 
-# Excalidraw bridge bundle (regenerate with: cd bridge && npx esbuild ...)
+# Bridge bundle (pre-built, lives in src/excanim/bridge/)
 bridge/bundle.js
 
 # OS

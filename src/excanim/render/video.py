@@ -1,43 +1,45 @@
 from __future__ import annotations
 
-import json
-import os
-import subprocess
 import tempfile
 from pathlib import Path
-
-from excanim.render.bridge import _find_node, BRIDGE_DIR
 
 
 def frames_to_video(svgs: list[str], output: Path, fps: int):
     import imageio.v3 as iio
     import numpy as np
 
+    from excanim.render.bridge import get_browser
+
     ext = output.suffix.lower()
 
     with tempfile.TemporaryDirectory(prefix="excanim_") as tmpdir:
-        # Rasterize SVGs to PNGs via Playwright (preserves Excalidraw fonts)
-        print(f"Rasterizing {len(svgs)} frames via browser...")
-        node = _find_node()
-        rasterize_script = BRIDGE_DIR / "rasterize.mjs"
+        tmp = Path(tmpdir)
 
-        result = subprocess.run(
-            [node, str(rasterize_script), tmpdir, "1920", "1080"],
-            input=json.dumps(svgs),
-            capture_output=True,
-            text=True,
-            timeout=600,
-            cwd=str(BRIDGE_DIR),
-        )
-        if result.returncode != 0:
-            raise RuntimeError(f"Rasterize failed:\n{result.stderr}")
+        # Rasterize SVGs to PNGs via shared Chromium browser
+        print(f"Rasterizing {len(svgs)} frames...")
+        browser = get_browser()
+        page = browser.new_page()
+        page.set_viewport_size({"width": 1920, "height": 1080})
 
-        # Read PNGs into numpy arrays
+        for i, svg_str in enumerate(svgs):
+            page.set_content(
+                f"""<!DOCTYPE html>
+                <html><head><style>
+                body {{ margin:0; background:white; display:flex; align-items:center;
+                       justify-content:center; width:1920px; height:1080px; overflow:hidden; }}
+                svg {{ width:1920px; height:1080px; }}
+                </style></head><body>{svg_str}</body></html>""",
+                wait_until="networkidle",
+            )
+            page.screenshot(path=str(tmp / f"frame_{i:06d}.png"), type="png")
+
+        page.close()
+
+        # Encode video
         print("Encoding video...")
         frames = []
         for i in range(len(svgs)):
-            png_path = Path(tmpdir) / f"frame_{i:06d}.png"
-            img = iio.imread(str(png_path))
+            img = iio.imread(str(tmp / f"frame_{i:06d}.png"))
             if img.ndim == 3 and img.shape[2] == 4:
                 img = img[:, :, :3]
             frames.append(img)
