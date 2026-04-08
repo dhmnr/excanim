@@ -31,5 +31,5 @@ class BouncingSim(Scene):
             self.capture()
 
 
-BouncingSim(fps=60).render("examples/bounce_sim.mp4")
-print("Done!")
+BouncingSim(fps=60).render("examples/bounce_sim/bounce_sim.mp4")
+

@@ -19,5 +19,5 @@ class Bounce(Scene):
         self.play(FadeOut(ball, duration=0.3))
 
 
-Bounce().render("examples/bounce.mp4", fps=30)
-print("Done!")
+Bounce().render("examples/bounce/bounce.mp4", fps=30)
+

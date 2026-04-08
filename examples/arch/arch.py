@@ -15,5 +15,5 @@ class Arch(Scene):
         self.add(client, api, db, a1, a2, title)
 
 
-Arch().render("examples/arch.svg")
-print("Rendered examples/arch.svg")
+Arch().render("examples/arch/arch.svg")
+

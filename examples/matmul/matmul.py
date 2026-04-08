@@ -161,5 +161,5 @@ class MatMul(Scene):
             self.capture()
 
 
-MatMul(fps=60).render("examples/matmul.mp4")
-print("Done!")
+MatMul(fps=60).render("examples/matmul/matmul.mp4")
+

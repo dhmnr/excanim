@@ -8,7 +8,6 @@ authors = [
 ]
 requires-python = ">=3.12"
 dependencies = [
-    "cairosvg>=2.9.0",
     "imageio>=2.37.3",
     "imageio-ffmpeg>=0.6.0",
 ]
