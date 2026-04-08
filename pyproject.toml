@@ -1,0 +1,18 @@
+[project]
+name = "excanim"
+version = "0.1.0"
+description = "Manim-style API for Excalidraw drawings and animations"
+readme = "README.md"
+authors = [
+    { name = "Dheemanth Manur", email = "dheemanthmanur72@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "cairosvg>=2.9.0",
+    "imageio>=2.37.3",
+    "imageio-ffmpeg>=0.6.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.10.11,<0.11.0"]
+build-backend = "uv_build"
