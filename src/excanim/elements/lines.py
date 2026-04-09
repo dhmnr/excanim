@@ -3,13 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from excanim.elements.base import Element, _make_id, _random_seed
-from excanim.constants import (
-    DEFAULT_STROKE_COLOR,
-    DEFAULT_STROKE_WIDTH,
-    DEFAULT_STROKE_STYLE,
-    DEFAULT_ROUGHNESS,
-    DEFAULT_OPACITY,
-)
+
+
+ARROWHEAD_TYPES = {"arrow", "bar", "dot", "triangle", None}
 
 
 @dataclass
@@ -20,18 +16,22 @@ class Line(Element):
         self,
         start: tuple[float, float] | Element = (0, 0),
         end: tuple[float, float] | Element = (100, 100),
+        waypoints: list[tuple[float, float]] | None = None,
         **kwargs,
     ):
         sx, sy = _resolve_point(start)
         ex, ey = _resolve_point(end)
         super().__init__(
-            x=sx,
-            y=sy,
-            width=abs(ex - sx),
-            height=abs(ey - sy),
+            x=sx, y=sy,
+            width=abs(ex - sx), height=abs(ey - sy),
             **kwargs,
         )
-        self.points = [[0, 0], [ex - sx, ey - sy]]
+        pts = [[0, 0]]
+        if waypoints:
+            for wx, wy in waypoints:
+                pts.append([wx - sx, wy - sy])
+        pts.append([ex - sx, ey - sy])
+        self.points = pts
 
     def to_excalidraw(self) -> dict:
         d = self._base_excalidraw()
@@ -49,6 +49,8 @@ class Line(Element):
 class Arrow(Element):
     points: list[list[float]] = field(default_factory=list)
     label: str | None = None
+    start_arrowhead: str | None = None
+    end_arrowhead: str = "arrow"
     _start_element: Element | None = field(default=None, repr=False)
     _end_element: Element | None = field(default=None, repr=False)
 
@@ -57,19 +59,27 @@ class Arrow(Element):
         start: tuple[float, float] | Element = (0, 0),
         end: tuple[float, float] | Element = (100, 100),
         label: str | None = None,
+        waypoints: list[tuple[float, float]] | None = None,
+        start_arrowhead: str | None = None,
+        end_arrowhead: str = "arrow",
         **kwargs,
     ):
         sx, sy = _resolve_point(start, anchor="right")
         ex, ey = _resolve_point(end, anchor="left")
         super().__init__(
-            x=sx,
-            y=sy,
-            width=abs(ex - sx),
-            height=abs(ey - sy),
+            x=sx, y=sy,
+            width=abs(ex - sx), height=abs(ey - sy),
             **kwargs,
         )
-        self.points = [[0, 0], [ex - sx, ey - sy]]
+        pts = [[0, 0]]
+        if waypoints:
+            for wx, wy in waypoints:
+                pts.append([wx - sx, wy - sy])
+        pts.append([ex - sx, ey - sy])
+        self.points = pts
         self.label = label
+        self.start_arrowhead = start_arrowhead
+        self.end_arrowhead = end_arrowhead
         self._start_element = start if isinstance(start, Element) else None
         self._end_element = end if isinstance(end, Element) else None
 
@@ -80,10 +90,16 @@ class Arrow(Element):
         d["lastCommittedPoint"] = None
         d["startBinding"] = _make_binding(self._start_element)
         d["endBinding"] = _make_binding(self._end_element)
-        d["startArrowhead"] = None
-        d["endArrowhead"] = "arrow"
+        d["startArrowhead"] = self.start_arrowhead
+        d["endArrowhead"] = self.end_arrowhead
         d["roundness"] = {"type": 2}
         return d
+
+    def to_excalidraw_list(self) -> list[dict]:
+        if self.label:
+            label_el = self._make_label_element(self.label)
+            return [self.to_excalidraw(), label_el]
+        return [self.to_excalidraw()]
 
 
 def _resolve_point(

@@ -48,7 +48,8 @@ class Scene:
             self._frames = []
         from excanim.render.frames import _make_canvas_anchor
         frame = [_make_canvas_anchor(self.width, self.height)]
-        frame.extend(el.to_excalidraw() for el in self._elements.values())
+        for el in self._elements.values():
+            frame.extend(el.to_excalidraw_list())
         self._frames.append(frame)
 
     def construct(self):
@@ -79,9 +80,14 @@ class Scene:
         else:
             raise ValueError(f"Unsupported output format: {ext}")
 
+    def _all_element_dicts(self) -> list[dict]:
+        result = []
+        for el in self._elements.values():
+            result.extend(el.to_excalidraw_list())
+        return result
+
     def _render_svg(self, out: Path):
-        elements_json = [el.to_excalidraw() for el in self._elements.values()]
-        svg = elements_to_svg(elements_json)
+        svg = elements_to_svg(self._all_element_dicts())
         out.write_text(svg)
 
     def _render_excalidraw(self, out: Path):
@@ -90,22 +96,20 @@ class Scene:
             "type": "excalidraw",
             "version": 2,
             "source": "excanim",
-            "elements": [el.to_excalidraw() for el in self._elements.values()],
+            "elements": self._all_element_dicts(),
             "appState": {"viewBackgroundColor": "#ffffff"},
             "files": {},
         }
         out.write_text(json.dumps(data, indent=2))
 
     def _render_video(self, out: Path, fps: int):
-        from excanim.render.frames import render_frames, build_frame_data
+        from excanim.render.frames import render_frames
         from excanim.render.bridge import batch_elements_to_svg
         from excanim.render.video import frames_to_video
 
         if self._frames:
-            # Simulation mode — frames already captured
             svgs = batch_elements_to_svg(self._frames)
+            frames_to_video(svgs, out, fps)
         else:
-            # Timeline mode
-            svgs = render_frames(self._elements, self._timeline, fps, self.width, self.height)
-
-        frames_to_video(svgs, out, fps)
+            svgs, draw_effects, frame_ids = render_frames(self._elements, self._timeline, fps, self.width, self.height)
+            frames_to_video(svgs, out, fps, draw_effects=draw_effects, frame_element_ids=frame_ids)

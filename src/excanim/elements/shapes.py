@@ -18,12 +18,8 @@ class Rect(Element):
         **kwargs,
     ):
         super().__init__(
-            x=pos[0],
-            y=pos[1],
-            width=size[0],
-            height=size[1],
-            background_color=fill,
-            **kwargs,
+            x=pos[0], y=pos[1], width=size[0], height=size[1],
+            background_color=fill, **kwargs,
         )
         self.label = label
 
@@ -32,6 +28,12 @@ class Rect(Element):
         d["type"] = "rectangle"
         d["roundness"] = {"type": 3}
         return d
+
+    def to_excalidraw_list(self) -> list[dict]:
+        if self.label:
+            label_el = self._make_label_element(self.label)
+            return [self.to_excalidraw(), label_el]
+        return [self.to_excalidraw()]
 
 
 @dataclass
@@ -47,12 +49,8 @@ class Ellipse(Element):
         **kwargs,
     ):
         super().__init__(
-            x=pos[0],
-            y=pos[1],
-            width=size[0],
-            height=size[1],
-            background_color=fill,
-            **kwargs,
+            x=pos[0], y=pos[1], width=size[0], height=size[1],
+            background_color=fill, **kwargs,
         )
         self.label = label
 
@@ -60,6 +58,12 @@ class Ellipse(Element):
         d = self._base_excalidraw()
         d["type"] = "ellipse"
         return d
+
+    def to_excalidraw_list(self) -> list[dict]:
+        if self.label:
+            label_el = self._make_label_element(self.label)
+            return [self.to_excalidraw(), label_el]
+        return [self.to_excalidraw()]
 
 
 @dataclass
@@ -75,12 +79,8 @@ class Diamond(Element):
         **kwargs,
     ):
         super().__init__(
-            x=pos[0],
-            y=pos[1],
-            width=size[0],
-            height=size[1],
-            background_color=fill,
-            **kwargs,
+            x=pos[0], y=pos[1], width=size[0], height=size[1],
+            background_color=fill, **kwargs,
         )
         self.label = label
 
@@ -88,3 +88,9 @@ class Diamond(Element):
         d = self._base_excalidraw()
         d["type"] = "diamond"
         return d
+
+    def to_excalidraw_list(self) -> list[dict]:
+        if self.label:
+            label_el = self._make_label_element(self.label)
+            return [self.to_excalidraw(), label_el]
+        return [self.to_excalidraw()]
